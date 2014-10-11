@@ -47,7 +47,7 @@ TESTLIBS += \
    -l boost_unit_test_framework$(BOOST_LIB_SUFFIX)
 
 ifndef USE_UPNP
-	override USE_UPNP = -
+	override USE_UPNP = 1
 endif
 ifneq (${USE_UPNP}, -)
 	LIBS += -l miniupnpc
