@@ -29,7 +29,7 @@ using namespace boost;
 
 static const int MAX_OUTBOUND_CONNECTIONS = 15;
 
-bool OpenNetworkConnection(const CAddress& addrConnect, CSemalitreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
+bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 
 
 struct LocalServiceInfo {
@@ -69,7 +69,7 @@ CCriticalSection cs_setservAddNodeAddresses;
 vector<std::string> vAddedNodes;
 CCriticalSection cs_vAddedNodes;
 
-static CSemalitre *semOutbound = NULL;
+static CSemaphore *semOutbound = NULL;
 
 void AddOneShot(string strDest)
 {
@@ -1347,7 +1347,7 @@ void static ProcessOneShot()
         vOneShots.pop_front();
     }
     CAddress addr;
-    CSemalitreGrant grant(*semOutbound, true);
+    CSemaphoreGrant grant(*semOutbound, true);
     if (grant) {
         if (!OpenNetworkConnection(addr, &grant, strDest.c_str(), true))
             AddOneShot(strDest);
@@ -1383,7 +1383,7 @@ void ThreadOpenConnections()
 
         MilliSleep(500);
 
-        CSemalitreGrant grant(*semOutbound);
+        CSemaphoreGrant grant(*semOutbound);
         boost::this_thread::interruption_point();
 
         // Add seed nodes if IRC isn't working
@@ -1466,6 +1466,11 @@ void ThreadOpenConnections()
 
 void ThreadOpenAddedConnections()
 {
+	mapMultiArgs["-addnode"].push_back("blakecoin.org");
+	mapMultiArgs["-addnode"].push_back("eu3.blakecoin.com");
+	mapMultiArgs["-addnode"].push_back("ny2.blakecoin.com");
+	mapMultiArgs["-addnode"].push_back("la1.blakecoin.com");
+	mapMultiArgs["-addnode"].push_back("cg1.blakecoin.com");
     {
         LOCK(cs_vAddedNodes);
         vAddedNodes = mapMultiArgs["-addnode"];
@@ -1481,7 +1486,7 @@ void ThreadOpenAddedConnections()
             }
             BOOST_FOREACH(string& strAddNode, lAddresses) {
                 CAddress addr;
-                CSemalitreGrant grant(*semOutbound);
+                CSemaphoreGrant grant(*semOutbound);
                 OpenNetworkConnection(addr, &grant, strAddNode.c_str());
                 MilliSleep(500);
             }
@@ -1528,7 +1533,7 @@ void ThreadOpenAddedConnections()
         }
         BOOST_FOREACH(vector<CService>& vserv, lservAddressesToAdd)
         {
-            CSemalitreGrant grant(*semOutbound);
+            CSemaphoreGrant grant(*semOutbound);
             OpenNetworkConnection(CAddress(vserv[i % vserv.size()]), &grant);
             MilliSleep(500);
         }
@@ -1537,7 +1542,7 @@ void ThreadOpenAddedConnections()
 }
 
 // if successful, this moves the passed grant to the constructed node
-bool OpenNetworkConnection(const CAddress& addrConnect, CSemalitreGrant *grantOutbound, const char *strDest, bool fOneShot)
+bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound, const char *strDest, bool fOneShot)
 {
     //
     // Initiate outbound network connection
@@ -1838,9 +1843,9 @@ void static Discover()
 void StartNode(boost::thread_group& threadGroup)
 {
     if (semOutbound == NULL) {
-        // initialize semalitre
+        // initialize semaphore
         int nMaxOutbound = min(MAX_OUTBOUND_CONNECTIONS, nMaxConnections);
-        semOutbound = new CSemalitre(nMaxOutbound);
+        semOutbound = new CSemaphore(nMaxOutbound);
     }
 
     if (pnodeLocalHost == NULL)
