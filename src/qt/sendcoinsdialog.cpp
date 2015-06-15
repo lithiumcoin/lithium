@@ -33,7 +33,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
 #endif
 #if QT_VERSION >= 0x040700
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a Bitcoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)"));
+    ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a Lithium address (e.g. 8krPcmCnr7Wn83y21tNYFbAabi1KCCccxi)"));
 #endif
 
     addEntry();
