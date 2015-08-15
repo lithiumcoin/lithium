@@ -1193,7 +1193,7 @@ void MapPort(bool)
 static const char *strMainNetDNSSeed[][2] = {
     {"192.241.188.98", "192.241.188.98"},
 	{"107.170.219.99", "107.170.219.99"},
-	{NULL, NULL}
+	{"178.62.221.227", "178.62.221.227"}
 };
 
 static const char *strTestNetDNSSeed[][2] = {
